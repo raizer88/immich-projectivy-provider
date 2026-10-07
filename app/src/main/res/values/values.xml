@@ -1,0 +1,5 @@
+<resources>
+    <!-- How long Projectivy keeps the returned wallpapers before requesting a new batch.
+         30 minutes. Static: read from the manifest, not changeable at runtime. -->
+    <integer name="items_cache_duration_millis">1800000</integer>
+</resources>
