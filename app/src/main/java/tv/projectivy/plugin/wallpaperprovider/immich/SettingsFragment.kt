@@ -99,6 +99,17 @@ class SettingsFragment : GuidedStepSupportFragment() {
         actions.add(qualityAction(ACTION_QUALITY_PREVIEW, R.string.quality_preview, PreferencesManager.QUALITY_PREVIEW))
         actions.add(qualityAction(ACTION_QUALITY_FULL_JPEG_PNG, R.string.quality_full_jpeg_png, PreferencesManager.QUALITY_FULL_JPEG_PNG))
         actions.add(qualityAction(ACTION_QUALITY_FULL_ALL, R.string.quality_full_all, PreferencesManager.QUALITY_FULL_ALL))
+
+        // Include archived & hidden photos (checkbox)
+        actions.add(
+            GuidedAction.Builder(requireContext())
+                .id(ACTION_INCLUDE_ARCHIVED_HIDDEN)
+                .title(getString(R.string.setting_include_archived_hidden))
+                .description(getString(R.string.setting_include_archived_hidden_desc))
+                .checkSetId(GuidedAction.CHECKBOX_CHECK_SET_ID)
+                .checked(PreferencesManager.includeArchivedHidden)
+                .build()
+        )
     }
 
     override fun onGuidedActionClicked(action: GuidedAction) {
@@ -139,6 +150,7 @@ class SettingsFragment : GuidedStepSupportFragment() {
             }
             ACTION_TRUST_SSL -> PreferencesManager.trustSsl = action.isChecked
             ACTION_LANDSCAPE_ONLY -> PreferencesManager.landscapeOnly = action.isChecked
+            ACTION_INCLUDE_ARCHIVED_HIDDEN -> PreferencesManager.includeArchivedHidden = action.isChecked
             ACTION_QUALITY_PREVIEW, ACTION_QUALITY_FULL_JPEG_PNG, ACTION_QUALITY_FULL_ALL -> {
                 PreferencesManager.quality = when {
                     isChecked(ACTION_QUALITY_FULL_JPEG_PNG) -> PreferencesManager.QUALITY_FULL_JPEG_PNG
@@ -260,6 +272,7 @@ class SettingsFragment : GuidedStepSupportFragment() {
         private const val ACTION_QUALITY_PREVIEW = 40L
         private const val ACTION_QUALITY_FULL_JPEG_PNG = 41L
         private const val ACTION_QUALITY_FULL_ALL = 42L
+        private const val ACTION_INCLUDE_ARCHIVED_HIDDEN = 43L
 
         private const val CHECKSET_SOURCE = 1
         private const val CHECKSET_QUALITY = 4

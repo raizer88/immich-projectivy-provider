@@ -1,6 +1,5 @@
 package tv.projectivy.plugin.wallpaperprovider.immich
 
-import android.net.Uri
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -50,6 +49,9 @@ data class TestResult(
     val albums: List<ImmichAlbum> = emptyList()
 )
 
+/** Downloaded image bytes together with the MIME type Immich reported for them. */
+data class ImmichImage(val bytes: ByteArray, val mimeType: String)
+
 /**
  * Minimal Immich v3 REST client (pure JVM, no native code).
  *
@@ -57,8 +59,8 @@ data class TestResult(
  *   GET  /api/albums                     -> list albums (x-api-key)
  *   POST /api/search/metadata            -> search assets (filter + orderBy + size)
  *   POST /api/search/random              -> random assets (filter + size)
- *   GET  /api/assets/{id}/original       -> original image bytes (JPEG/PNG/etc.)
- *   GET  /api/assets/{id}/thumbnail?size=preview -> preview bytes (JPEG, ~1440 px)
+ *   GET  /api/assets/{id}/original       -> original image bytes (x-api-key)
+ *   GET  /api/assets/{id}/thumbnail?size=preview -> image bytes (x-api-key)
  *
  * Every request is authenticated with the `x-api-key` header.
  */
@@ -220,7 +222,16 @@ class ImmichClient {
             val o = arr.optJSONObject(i) ?: continue
             val id = o.optString("id", "")
             val type = o.optString("type", "IMAGE")
-            if (id.isNotBlank() && type == "IMAGE") {
+            // Anything the user took off the timeline should not surface on a living-room
+            // TV. Immich enforces the locked folder server-side for API-key sessions, but
+            // archived and hidden assets are returned unless excluded here. Filtered on the
+            // response rather than in the search body on purpose: an unknown filter key is
+            // a 400 that would empty the rotation, whereas an absent response field just
+            // defaults to visible. Opt-in via the "Include archived & hidden" setting.
+            val visibility = o.optString("visibility", "timeline")
+            val archived = o.optBoolean("isArchived", false)
+            val excluded = archived || !visibility.equals("timeline", ignoreCase = true)
+            if (id.isNotBlank() && type == "IMAGE" && (PreferencesManager.includeArchivedHidden || !excluded)) {
                 result.add(
                     ImmichAsset(
                         id = id,
@@ -236,29 +247,49 @@ class ImmichClient {
     }
 
     /**
-     * Direct URL for a preview-sized thumbnail (~1440 px) that carries the API key in the
-     * `apiKey` query parameter. Immich accepts the API key this way as an alternative to
-     * the `x-api-key` header, which is required here because Projectivy downloads the URL
-     * itself and cannot attach custom headers.
+     * Downloads an asset; returns the bytes plus the server-reported MIME type, or null on
+     * any failure. [original] selects `/original` (full-resolution modes); otherwise the
+     * preview-sized JPEG thumbnail is fetched. HEIC/RAW originals are only requested when
+     * the caller has decided they are acceptable.
+     *
+     * The key travels in the `x-api-key` header. The plugin deliberately does not build
+     * `...thumbnail?apiKey=<key>` URLs for Projectivy to fetch: Immich accepts that form,
+     * but it puts a credential for the entire library into Projectivy's cache and into the
+     * access log of any reverse proxy fronting Immich.
      */
-    fun thumbnailUrl(baseUrl: String, apiKey: String, assetId: String, size: String = "preview"): String =
-        Uri.parse("$baseUrl/api/assets/$assetId/thumbnail")
-            .buildUpon()
-            .appendQueryParameter("size", size)
-            .appendQueryParameter("apiKey", apiKey)
+    fun fetchImage(
+        baseUrl: String,
+        apiKey: String,
+        trustSsl: Boolean,
+        assetId: String,
+        original: Boolean
+    ): ImmichImage? {
+        val path = if (original) {
+            "/api/assets/$assetId/original"
+        } else {
+            "/api/assets/$assetId/thumbnail?size=preview"
+        }
+        val request = Request.Builder()
+            .url("$baseUrl$path")
+            .header("x-api-key", apiKey)
+            .get()
             .build()
-            .toString()
-
-    /**
-     * Direct URL for the full-resolution original asset, carrying the API key the same
-     * way as [thumbnailUrl].
-     */
-    fun originalUrl(baseUrl: String, apiKey: String, assetId: String): String =
-        Uri.parse("$baseUrl/api/assets/$assetId/original")
-            .buildUpon()
-            .appendQueryParameter("apiKey", apiKey)
-            .build()
-            .toString()
+        return try {
+            client(trustSsl).newCall(request).execute().use { response ->
+                if (!response.isSuccessful) return null
+                val bytes = response.body?.bytes() ?: return null
+                val mimeType = response.header("Content-Type")
+                    ?.substringBefore(';')
+                    ?.trim()
+                    ?.lowercase()
+                    ?.takeIf { it.startsWith("image/") }
+                    ?: "image/jpeg"
+                ImmichImage(bytes, mimeType)
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
 
     fun testConnection(baseUrl: String, apiKey: String, trustSsl: Boolean): TestResult {
         return try {

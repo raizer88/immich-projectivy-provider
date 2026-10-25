@@ -29,6 +29,8 @@
     <string name="quality_preview">Preview (max compatibility)</string>
     <string name="quality_full_jpeg_png">Full resolution — JPEG/PNG only</string>
     <string name="quality_full_all">Full resolution — all formats</string>
+    <string name="setting_include_archived_hidden">Include archived &amp; hidden</string>
+    <string name="setting_include_archived_hidden_desc">Also use photos archived or hidden in Immich (e.g. a dedicated wallpaper archive); the locked folder is always excluded</string>
     <string name="http_warning_title">Unencrypted connection</string>
     <string name="http_warning_message">This server URL uses HTTP (unencrypted). Your Immich API key will be sent without encryption and could be read by anyone on your network. Continue anyway?</string>
     <string name="http_warning_continue">Continue</string>

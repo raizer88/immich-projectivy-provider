@@ -17,7 +17,7 @@
     </queries>
 
     <application
-        android:allowBackup="true"
+        android:allowBackup="false"
         android:label="@string/plugin_name"
         android:supportsRtl="true"
         android:icon="@drawable/ic_launcher"
@@ -79,6 +79,16 @@
                 android:name="updateMode"
                 android:value="1" />
         </service>
+
+        <!-- Serves cached wallpaper JPEGs to Projectivy via content:// URIs.
+             NOT exported: WallpaperProviderService issues a per-URI read grant to
+             Projectivy's package instead, so the cache is readable by that one consumer
+             rather than by every app on the device. -->
+        <provider
+            android:name=".WallpaperImageProvider"
+            android:authorities="tv.projectivy.plugin.wallpaperprovider.immich.provider"
+            android:exported="false"
+            android:grantUriPermissions="true" />
 
     </application>
 

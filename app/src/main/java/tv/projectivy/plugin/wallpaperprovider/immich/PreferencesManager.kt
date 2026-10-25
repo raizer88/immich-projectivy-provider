@@ -27,6 +27,7 @@ object PreferencesManager {
     private const val KEY_SECONDS = "seconds_per_image"
     private const val KEY_TRUST_SSL = "trust_ssl"
     private const val KEY_LANDSCAPE_ONLY = "landscape_only"
+    private const val KEY_INCLUDE_ARCHIVED_HIDDEN = "include_archived_hidden"
     private const val KEY_QUALITY = "quality"
 
     const val SOURCE_RECENT = "recent"
@@ -116,6 +117,15 @@ object PreferencesManager {
         set(value) = prefs.edit().putBoolean(KEY_LANDSCAPE_ONLY, value).apply()
 
     /**
+     * When false (default), assets archived or hidden in Immich are excluded from the
+     * rotation. When true, they are included — e.g. for an archive used as a dedicated
+     * wallpaper album. The locked folder stays server-side excluded either way.
+     */
+    var includeArchivedHidden: Boolean
+        get() = prefs.getBoolean(KEY_INCLUDE_ARCHIVED_HIDDEN, false)
+        set(value) = prefs.edit().putBoolean(KEY_INCLUDE_ARCHIVED_HIDDEN, value).apply()
+
+    /**
      * Wallpaper quality. One of [QUALITY_PREVIEW] (default, max compatibility),
      * [QUALITY_FULL_JPEG_PNG] (original only for JPEG/PNG) or [QUALITY_FULL_ALL]
      * (original for every format).
@@ -147,6 +157,7 @@ object PreferencesManager {
         json.put(KEY_SECONDS, secondsPerImage)
         json.put(KEY_TRUST_SSL, trustSsl)
         json.put(KEY_LANDSCAPE_ONLY, landscapeOnly)
+        json.put(KEY_INCLUDE_ARCHIVED_HIDDEN, includeArchivedHidden)
         json.put(KEY_QUALITY, quality)
         return json.toString()
     }
@@ -183,6 +194,7 @@ object PreferencesManager {
             if (json.has(KEY_SECONDS)) editor.putInt(KEY_SECONDS, intValue(json, KEY_SECONDS, DEFAULT_SECONDS).coerceIn(MIN_SECONDS, MAX_SECONDS))
             if (json.has(KEY_TRUST_SSL)) editor.putBoolean(KEY_TRUST_SSL, boolValue(json, KEY_TRUST_SSL))
             if (json.has(KEY_LANDSCAPE_ONLY)) editor.putBoolean(KEY_LANDSCAPE_ONLY, boolValue(json, KEY_LANDSCAPE_ONLY))
+            if (json.has(KEY_INCLUDE_ARCHIVED_HIDDEN)) editor.putBoolean(KEY_INCLUDE_ARCHIVED_HIDDEN, boolValue(json, KEY_INCLUDE_ARCHIVED_HIDDEN))
             if (json.has(KEY_QUALITY)) editor.putString(KEY_QUALITY, json.optString(KEY_QUALITY))
             editor.apply()
             true
