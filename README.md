@@ -72,13 +72,13 @@ and `asset.view` for previews, plus `asset.download` for full-resolution origina
 Build with GitHub Actions (see below) or download the APK from the release:
 
 ```
-https://github.com/<YOUR-USER>/<YOUR-REPO>/releases/latest/download/immich-provider-<version>.apk
+https://github.com/<YOUR-USER>/<YOUR-REPO>/releases/latest/download/immich-provider.apk
 ```
 
 Install on the Fire TV:
 
 ```
-adb install -r immich-provider-<version>.apk
+adb install -r immich-provider.apk
 ```
 
 Then, in Projectivy: **Settings → Appearance → Wallpaper → Plugin → Immich Wallpaper Provider → Settings**.
@@ -124,9 +124,9 @@ controls:
   list before requesting it again.
 
 This plugin's **"Seconds per image"** setting is therefore **advisory**: it is saved and shown, but
-it cannot force a rotation faster than the launcher's minimum (**30 seconds** since v4.70). To align
-them, set the same value in **Projectivy → Appearance → Wallpaper → change interval** (minimum 30 s).
-Below 30 seconds the launcher's minimum still applies. *Nothing is simulated*: the value only takes
+it cannot force a rotation faster than the launcher's minimum (**15 seconds** since v4.70). To align
+them, set the same value in **Projectivy → Appearance → Wallpaper → change interval** (minimum 15 s).
+Below 15 seconds the launcher's minimum still applies. *Nothing is simulated*: the value only takes
 effect if aligned with Projectivy's setting.
 
 ## Immich APIs used (verified against the OpenAPI v3.x spec)
@@ -165,7 +165,7 @@ On every push to the main branch it creates/updates a **`latest`** release; on a
 a release named after the tag. The direct link is therefore:
 
 ```
-https://github.com/<user>/<repo>/releases/latest/download/immich-provider-<version>.apk
+https://github.com/<user>/<repo>/releases/latest/download/immich-provider.apk
 ```
 
 ### Locally
@@ -264,13 +264,13 @@ scadenza breve: è questo che rende la chiave-in-processo degna del codice in pi
 Compila con GitHub Actions (vedi sotto) oppure scarica l'APK dalla release:
 
 ```
-https://github.com/<TUO-UTENTE>/<TUO-REPO>/releases/latest/download/immich-provider-<version>.apk
+https://github.com/<TUO-UTENTE>/<TUO-REPO>/releases/latest/download/immich-provider.apk
 ```
 
 Installa sul Fire TV:
 
 ```
-adb install -r immich-provider-<version>.apk
+adb install -r immich-provider.apk
 ```
 
 Poi, in Projectivy: **Impostazioni → Aspetto → Wallpaper → Plugin → Immich Wallpaper Provider → Impostazioni**.
@@ -320,8 +320,8 @@ Il plugin controlla solo:
 
 L'impostazione **"Seconds per image"** di questo plugin è quindi **advisory**: viene salvata
 e mostrata, ma non può forzare una rotazione più veloce del minimo del launcher
-(**30 secondi** dalla v4.70). Per farla combaciare, imposta lo stesso valore in
-**Projectivy → Aspetto → Wallpaper → intervallo di cambio** (minimo 30 s). Sotto i 30 secondi
+(**15 secondi** dalla v4.70). Per farla combaciare, imposta lo stesso valore in
+**Projectivy → Aspetto → Wallpaper → intervallo di cambio** (minimo 15 s). Sotto i 15 secondi
 vale comunque il minimo del launcher. *Non viene simulato nulla*: il valore ha effetto solo
 se allineato all'impostazione di Projectivy.
 
@@ -362,7 +362,7 @@ Su ogni push al ramo principale crea/aggiorna una release **`latest`**; su un ta
 una release col nome del tag. Il link diretto è quindi:
 
 ```
-https://github.com/<utente>/<repo>/releases/latest/download/immich-provider-<version>.apk
+https://github.com/<utente>/<repo>/releases/latest/download/immich-provider.apk
 ```
 
 ### In locale

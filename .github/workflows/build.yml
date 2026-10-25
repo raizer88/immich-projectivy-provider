@@ -42,14 +42,16 @@ jobs:
       - name: Build debug APK
         run: gradle :app:assembleDebug --no-daemon
 
-      - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk "immich-provider-${{ steps.version.outputs.version }}.apk"
+      - name: Rename APKs
+        run: |
+          cp app/build/outputs/apk/debug/app-debug.apk immich-provider.apk
+          cp app/build/outputs/apk/debug/app-debug.apk "immich-provider-${{ steps.version.outputs.version }}.apk"
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: immich-provider-apk
-          path: immich-provider-${{ steps.version.outputs.version }}.apk
+          path: immich-provider*.apk
           if-no-files-found: error
 
       - name: Publish GitHub Release
@@ -57,7 +59,7 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
-          APK="immich-provider-${{ steps.version.outputs.version }}.apk"
+          VERSION="${{ steps.version.outputs.version }}"
           if [ "$GITHUB_REF_TYPE" = "tag" ]; then
             TAG="$GITHUB_REF_NAME"
           else
@@ -65,7 +67,9 @@ jobs:
           fi
           # Idempotent: remove any previous release/tag under this name, then recreate.
           gh release delete "$TAG" --yes --cleanup-tag >/dev/null 2>&1 || true
-          gh release create "$TAG" "$APK" \
-            --title "Immich Provider ${{ steps.version.outputs.version }} ($TAG)" \
+          # Publish a stable name (predictable download link for Projectivy's plugin list)
+          # plus a versioned copy.
+          gh release create "$TAG" immich-provider.apk "immich-provider-$VERSION.apk" \
+            --title "Immich Provider $VERSION ($TAG)" \
             --notes-file CHANGELOG.md \
             --target "$GITHUB_SHA"
