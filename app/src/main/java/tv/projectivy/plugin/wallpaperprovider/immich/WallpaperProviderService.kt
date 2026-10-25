@@ -116,30 +116,16 @@ class WallpaperProviderService : Service() {
 
         // Projectivy is blocked in a binder transaction for the duration of this call, so
         // the downloads get a wall-clock budget: a slow or half-dead Immich must not hold
-        // the launcher indefinitely. Anything already cached from an earlier pass is still
-        // served, so exhausting the budget degrades the rotation rather than emptying it.
+        // the launcher indefinitely. Whatever is already cached is still served, so
+        // exhausting the budget degrades the rotation rather than emptying it.
         val deadline = System.currentTimeMillis() + DOWNLOAD_BUDGET_MS
-        var fetched = 0
-        for (asset in usable) {
-            if (System.currentTimeMillis() > deadline) {
-                Log.i(TAG, "Download budget spent after $fetched asset(s); serving the cache")
-                break
-            }
-            val serveOriginal = quality == PreferencesManager.QUALITY_FULL_ALL ||
-                (quality == PreferencesManager.QUALITY_FULL_JPEG_PNG && asset.canServeOriginal)
-            val file = cache.ensureCached(
-                asset.id,
-                if (serveOriginal) WallpaperCache.ORIGINAL_SIZE else WallpaperCache.PREVIEW_SIZE
-            ) {
-                client.fetchImage(baseUrl, apiKey, trustSsl, asset.id, original = serveOriginal)
-            }
-            if (file != null) fetched++
-        }
+        val served = WallpaperLoader.download(
+            client, cache, baseUrl, apiKey, trustSsl, usable, quality, deadline
+        )
         cache.enforceSizeLimit(MAX_CACHE_BYTES)
 
-        val titles = assets.associate { it.id to it.fileName }
-        val wallpapers = cache.listCached().shuffled().map { cached ->
-            val uri = cache.uriFor(cached.fileName)
+        val wallpapers = served.shuffled().map { (asset, file) ->
+            val uri = cache.uriFor(file.name)
             // Ad-hoc grants do not survive a reboot; re-issuing them on every call is what
             // keeps that self-healing, since Projectivy re-asks once the item cache expires.
             grantUriPermission(PROJECTIVY_PACKAGE, uri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
@@ -147,11 +133,11 @@ class WallpaperProviderService : Service() {
                 uri = uri.toString(),
                 type = WallpaperType.IMAGE,
                 displayMode = WallpaperDisplayMode.CROP,
-                title = titles[cached.assetId]?.takeIf { it.isNotBlank() }
+                title = asset.fileName.takeIf { it.isNotBlank() }
             )
         }
 
-        Log.i(TAG, "Returning ${wallpapers.size} wallpapers ($fetched newly downloaded)")
+        Log.i(TAG, "Returning ${wallpapers.size} wallpapers")
         return wallpapers
     }
 

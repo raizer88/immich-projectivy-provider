@@ -31,6 +31,11 @@
     <string name="quality_full_all">Full resolution — all formats</string>
     <string name="setting_include_archived_hidden">Include archived &amp; hidden</string>
     <string name="setting_include_archived_hidden_desc">Also use photos archived or hidden in Immich (e.g. a dedicated wallpaper archive); the locked folder is always excluded</string>
+    <string name="setting_first_refresh_note">Photos are downloaded on the first refresh (up to ~20 s); afterwards they are served from the local cache. Use \u201cPreload wallpapers\u201d to do it now.</string>
+    <string name="setting_preload">Preload wallpapers</string>
+    <string name="setting_preload_desc">Download the current selection now so the home screen doesn\'t wait on the first refresh</string>
+    <string name="preload_progress">Downloading %1$d/%2$d\u2026</string>
+    <string name="preload_done">Done — %1$d cached</string>
     <string name="http_warning_title">Unencrypted connection</string>
     <string name="http_warning_message">This server URL uses HTTP (unencrypted). Your Immich API key will be sent without encryption and could be read by anyone on your network. Continue anyway?</string>
     <string name="http_warning_continue">Continue</string>

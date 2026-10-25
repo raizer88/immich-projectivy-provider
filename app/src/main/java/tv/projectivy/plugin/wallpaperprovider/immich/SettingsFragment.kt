@@ -12,7 +12,8 @@ class SettingsFragment : GuidedStepSupportFragment() {
         return GuidanceStylist.Guidance(
             getString(R.string.plugin_name),
             getString(R.string.settings_description) +
-                "\n\n" + getString(R.string.setting_seconds_per_image_desc),
+                "\n\n" + getString(R.string.setting_seconds_per_image_desc) +
+                "\n\n" + getString(R.string.setting_first_refresh_note),
             getString(R.string.settings_title),
             null
         )
@@ -110,6 +111,15 @@ class SettingsFragment : GuidedStepSupportFragment() {
                 .checked(PreferencesManager.includeArchivedHidden)
                 .build()
         )
+
+        // Preload wallpapers
+        actions.add(
+            GuidedAction.Builder(requireContext())
+                .id(ACTION_PRELOAD)
+                .title(getString(R.string.setting_preload))
+                .description(getString(R.string.setting_preload_desc))
+                .build()
+        )
     }
 
     override fun onGuidedActionClicked(action: GuidedAction) {
@@ -151,6 +161,7 @@ class SettingsFragment : GuidedStepSupportFragment() {
             ACTION_TRUST_SSL -> PreferencesManager.trustSsl = action.isChecked
             ACTION_LANDSCAPE_ONLY -> PreferencesManager.landscapeOnly = action.isChecked
             ACTION_INCLUDE_ARCHIVED_HIDDEN -> PreferencesManager.includeArchivedHidden = action.isChecked
+            ACTION_PRELOAD -> runPreload()
             ACTION_QUALITY_PREVIEW, ACTION_QUALITY_FULL_JPEG_PNG, ACTION_QUALITY_FULL_ALL -> {
                 PreferencesManager.quality = when {
                     isChecked(ACTION_QUALITY_FULL_JPEG_PNG) -> PreferencesManager.QUALITY_FULL_JPEG_PNG
@@ -252,6 +263,54 @@ class SettingsFragment : GuidedStepSupportFragment() {
         }.start()
     }
 
+    private fun runPreload() {
+        val url = PreferencesManager.serverUrl
+        val key = PreferencesManager.apiKey
+        if (url.isBlank() || key.isBlank()) {
+            Toast.makeText(requireContext(), R.string.error_no_config, Toast.LENGTH_LONG).show()
+            return
+        }
+
+        val action = findActionById(ACTION_PRELOAD)
+        action?.description = getString(R.string.preload_progress, 0, PreferencesManager.imageCount)
+        refresh(ACTION_PRELOAD)
+
+        val client = ImmichClient()
+        val cache = WallpaperCache(requireContext())
+        val base = client.normalizeBaseUrl(url)
+        val trust = PreferencesManager.trustSsl
+        val source = PreferencesManager.source
+        val albumIds = PreferencesManager.albumIds
+        val count = PreferencesManager.imageCount
+        val landscapeOnly = PreferencesManager.landscapeOnly
+        val quality = PreferencesManager.quality
+
+        Thread {
+            val fetchCount = if (landscapeOnly) minOf(count * 3, 200) else count
+            val assets = try {
+                client.fetchAssets(base, key, trust, source, albumIds, fetchCount)
+            } catch (e: Exception) {
+                emptyList()
+            }
+            val usable = (if (landscapeOnly) assets.filter { it.isLandscape } else assets).take(count)
+            val served = WallpaperLoader.download(
+                client, cache, base, key, trust, usable, quality,
+                System.currentTimeMillis() + PRELOAD_BUDGET_MS
+            ) { done, total ->
+                activity?.runOnUiThread {
+                    findActionById(ACTION_PRELOAD)?.description =
+                        getString(R.string.preload_progress, done, total)
+                    refresh(ACTION_PRELOAD)
+                }
+            }
+            cache.enforceSizeLimit(PRELOAD_MAX_CACHE_BYTES)
+            activity?.runOnUiThread {
+                findActionById(ACTION_PRELOAD)?.description = getString(R.string.preload_done, served.size)
+                refresh(ACTION_PRELOAD)
+            }
+        }.start()
+    }
+
     private fun openAlbumPicker() {
         GuidedStepSupportFragment.add(requireFragmentManager(), AlbumPickerFragment())
     }
@@ -273,8 +332,12 @@ class SettingsFragment : GuidedStepSupportFragment() {
         private const val ACTION_QUALITY_FULL_JPEG_PNG = 41L
         private const val ACTION_QUALITY_FULL_ALL = 42L
         private const val ACTION_INCLUDE_ARCHIVED_HIDDEN = 43L
+        private const val ACTION_PRELOAD = 44L
 
         private const val CHECKSET_SOURCE = 1
         private const val CHECKSET_QUALITY = 4
+
+        private const val PRELOAD_BUDGET_MS = 120_000L
+        private const val PRELOAD_MAX_CACHE_BYTES = 64L * 1024 * 1024
     }
 }

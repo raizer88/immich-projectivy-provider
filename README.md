@@ -51,20 +51,20 @@ do not survive a reboot, so they are re-issued on every `getWallpapers()` call; 
 re-asks once `itemsCacheDurationMillis` expires, that self-heals.
 
 Immich API keys cannot be scoped to a single album and have no short-lived variant, which is what
-makes keeping the key in-process worth the extra code. The plugin needs exactly three permissions:
-`album.read`, `asset.read`, `asset.view`.
+makes keeping the key in-process worth the extra code. The plugin needs `album.read`, `asset.read`
+and `asset.view` for previews, plus `asset.download` for full-resolution originals.
 
 ## Requirements
 
 - **Projectivy Launcher Premium** (required for plugins).
 - An **Immich** server (v3) reachable from the Fire TV on the local network.
 - An **Immich API key** with these permissions: **`album.read`**, **`asset.read`**,
-  **`asset.view`**.
+  **`asset.view`** (add **`asset.download`** for full-resolution modes).
 
 ### Creating the API key
 
 1. Immich → User settings → **API Keys** → *New API Key*.
-2. Grant the permissions: `album.read`, `asset.read`, `asset.view`.
+2. Grant the permissions: `album.read`, `asset.read`, `asset.view` (and `asset.download` for full-resolution modes).
 3. Copy the key; you'll need it in the plugin's settings screen.
 
 ## Installation
@@ -244,19 +244,19 @@ I grant ad-hoc non sopravvivono a un riavvio, quindi vengono riemessi a ogni chi
 
 Le API key di Immich non possono essere limitate a un singolo album e non esistono in versione a
 scadenza breve: è questo che rende la chiave-in-processo degna del codice in più. Al plugin servono
-esattamente tre permessi: `album.read`, `asset.read`, `asset.view`.
+`album.read`, `asset.read` e `asset.view` per le anteprime, più `asset.download` per gli originali a piena risoluzione.
 
 ## Requisiti
 
 - **Projectivy Launcher Premium** (necessario per i plugin).
 - Un server **Immich** (v3) raggiungibile dal Fire TV sulla rete locale.
 - Una **API key Immich** con questi permessi: **`album.read`**, **`asset.read`**,
-  **`asset.view`**.
+  **`asset.view`** (aggiungi **`asset.download`** per le modalità a piena risoluzione).
 
 ### Creare la API key
 
 1. Immich → Impostazioni utente → **API Keys** → *New API Key*.
-2. Concedi i permessi: `album.read`, `asset.read`, `asset.view`.
+2. Concedi i permessi: `album.read`, `asset.read`, `asset.view` (e `asset.download` per le modalità a piena risoluzione).
 3. Copia la chiave; servirà nella schermata di configurazione del plugin.
 
 ## Installazione

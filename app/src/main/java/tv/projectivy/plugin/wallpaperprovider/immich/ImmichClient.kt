@@ -59,8 +59,8 @@ data class ImmichImage(val bytes: ByteArray, val mimeType: String)
  *   GET  /api/albums                     -> list albums (x-api-key)
  *   POST /api/search/metadata            -> search assets (filter + orderBy + size)
  *   POST /api/search/random              -> random assets (filter + size)
- *   GET  /api/assets/{id}/original       -> original image bytes (x-api-key)
- *   GET  /api/assets/{id}/thumbnail?size=preview -> image bytes (x-api-key)
+ *   GET  /api/assets/{id}/original       -> original image bytes (JPEG/PNG/etc.)
+ *   GET  /api/assets/{id}/thumbnail?size=preview -> preview bytes (JPEG, ~1440 px)
  *
  * Every request is authenticated with the `x-api-key` header.
  */
